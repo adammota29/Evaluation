@@ -18,7 +18,11 @@ kotlin {
         }
     }
     
-    jvm()
+    jvm {
+        mainRun {
+            mainClass = "com.adam.evaluation.MainKt"
+        }
+    }
     
     sourceSets {
         androidMain.dependencies {
@@ -111,3 +115,6 @@ compose.desktop {
         }
     }
 }
+
+
+

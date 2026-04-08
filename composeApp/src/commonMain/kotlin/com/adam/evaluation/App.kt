@@ -11,14 +11,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.adam.evaluation.core.presentation.navigation.LocationDetailDestination
 import com.adam.evaluation.core.presentation.navigation.LocationListDestination
@@ -26,6 +27,7 @@ import com.adam.evaluation.core.presentation.screen.location_detail.LocationDeta
 import com.adam.evaluation.core.presentation.screen.location_detail.LocationDetailViewModel
 import com.adam.evaluation.core.presentation.screen.location_list.LocationListScreen
 import com.adam.evaluation.core.presentation.screen.location_list.LocationListViewModel
+import org.koin.core.context.GlobalContext
 import org.koin.core.parameter.parametersOf
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -45,7 +47,7 @@ fun App(isDesktop: Boolean = false) {
 
 @Composable
 private fun AppMobileNavigation() {
-    val backStack = rememberNavBackStack(LocationListDestination)
+    val backStack = remember { mutableStateListOf<NavKey>(LocationListDestination) }
 
     NavDisplay(
         backStack = backStack,
@@ -87,7 +89,8 @@ private fun AppMobileNavigation() {
 
 @Composable
 private fun AppDesktopMasterDetail() {
-    val listViewModel = koinViewModel<LocationListViewModel>()
+    val koin = GlobalContext.get()
+    val listViewModel = remember { koin.get<LocationListViewModel>() }
     var selectedLocationId by remember { mutableStateOf<Int?>(null) }
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -116,10 +119,11 @@ private fun AppDesktopMasterDetail() {
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                val detailViewModel = koinViewModel<LocationDetailViewModel>(
-                    key = "desktop-location-detail-$locationId",
-                    parameters = { parametersOf(locationId) }
-                )
+                val detailViewModel = remember(locationId) {
+                    koin.get<LocationDetailViewModel> {
+                        parametersOf(locationId)
+                    }
+                }
                 LocationDetailScreen(viewModel = detailViewModel)
             }
         }
