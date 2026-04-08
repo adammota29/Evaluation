@@ -10,6 +10,11 @@ interface LocationRepository {
     fun getLocations(): Flow<List<Location>>
 
     /**
+     * Force une synchronisation réseau vers la source locale (SSOT).
+     */
+    suspend fun refreshLocations()
+
+    /**
      * Récupère le détail d'un lieu spécifique.
      */
     suspend fun getLocationById(id: Int): Location?

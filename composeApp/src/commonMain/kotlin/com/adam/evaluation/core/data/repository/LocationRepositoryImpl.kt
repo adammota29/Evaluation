@@ -22,7 +22,7 @@ class LocationRepositoryImpl(
         return queries.selectAll()
             .asFlow()
             .mapToList(Dispatchers.IO)
-            .map { entities -> entities.map(LocationEntity::toDomain) }
+            .map { entities -> entities.map { entity -> entity.toDomain() } }
     }
 
     override suspend fun getLocationById(id: Int): Location? {
@@ -34,28 +34,23 @@ class LocationRepositoryImpl(
      * 2. Cette fonction est le cœur de notre "Fetch".
      * Elle appelle l'API et sauvegarde le résultat dans la BDD.
      */
-    suspend fun syncLocations() {
-        try {
-            // On fetch l'API
-            val response = api.fetchLocations()
+    override suspend fun refreshLocations() {
+        // On fetch l'API
+        val response = api.fetchLocations()
 
-            // On sauvegarde chaque DTO dans la base de données (Cache)
-            database.transaction { // Transaction pour des performances optimales
-                response.results.forEach { dto ->
-                    queries.insertLocation(
-                        id = dto.id.toLong(),
-                        name = dto.name,
-                        type = dto.type,
-                        dimension = dto.dimension,
-                        // On extrait les IDs et on les joint avec une virgule pour le stockage
-                        residentIds = dto.residentUrls.map { it.substringAfterLast("/") }.joinToString(","),
-                        created = dto.created
-                    )
-                }
+        // On sauvegarde chaque DTO dans la base de données (Cache)
+        database.transaction { // Transaction pour des performances optimales
+            response.results.forEach { dto ->
+                queries.insertLocation(
+                    id = dto.id.toLong(),
+                    name = dto.name,
+                    type = dto.type,
+                    dimension = dto.dimension,
+                    // On extrait les IDs et on les joint avec une virgule pour le stockage
+                    residentIds = dto.residentUrls.map { it.substringAfterLast("/") }.joinToString(","),
+                    created = dto.created
+                )
             }
-        } catch (e: Exception) {
-            // Gestion d'erreur (pas de réseau, etc.)
-            e.printStackTrace()
         }
     }
 

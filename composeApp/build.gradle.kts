@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    id("org.jetbrains.kotlin.plugin.serialization") version libs.versions.kotlin.get()
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
@@ -35,6 +36,9 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation("io.insert-koin:koin-compose-viewmodel:${libs.versions.koin.get()}")
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.json)
@@ -65,11 +69,11 @@ extensions.configure<Any>("sqldelight") {
 }
 
 android {
-    namespace = "com.example.evaluation"
+    namespace = "com.adam.evaluation"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.evaluation"
+        applicationId = "com.adam.evaluation"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -97,11 +101,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.example.evaluation.MainKt"
+        mainClass = "com.adam.evaluation.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.example.evaluation"
+            packageName = "com.adam.evaluation"
             packageVersion = "1.0.0"
         }
     }
