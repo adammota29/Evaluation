@@ -42,6 +42,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.json)
+            implementation(libs.navigation3.ui)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutine)
         }

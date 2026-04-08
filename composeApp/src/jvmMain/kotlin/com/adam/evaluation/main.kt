@@ -12,7 +12,7 @@ fun main() = application {
 		onCloseRequest = ::exitApplication,
 		title = "Evaluation",
 	) {
-		App()
+		App(isDesktop = true)
 	}
 }
 

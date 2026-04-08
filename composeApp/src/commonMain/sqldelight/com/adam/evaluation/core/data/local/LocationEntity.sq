@@ -1,18 +1,23 @@
+-- Stocke les localisations synchronisées depuis l'API distante.
 CREATE TABLE LocationEntity (
     id INTEGER NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     dimension TEXT NOT NULL,
+    -- Liste des IDs résidents sérialisée en CSV pour rester dans une colonne TEXT.
     residentIds TEXT NOT NULL,
     created TEXT NOT NULL
 );
 
+-- Retourne toutes les localisations persistées.
 selectAll:
 SELECT * FROM LocationEntity;
 
+-- Retourne une localisation à partir de son identifiant.
 selectById:
 SELECT * FROM LocationEntity WHERE id = ?;
 
+-- Insère ou met à jour une localisation.
 insertLocation:
 INSERT OR REPLACE INTO LocationEntity(id, name, type, dimension, residentIds, created)
 VALUES (?, ?, ?, ?, ?, ?);

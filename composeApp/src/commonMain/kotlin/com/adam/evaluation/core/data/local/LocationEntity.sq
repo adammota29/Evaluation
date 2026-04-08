@@ -1,22 +1,23 @@
--- Définition de la table
+-- Stocke les localisations synchronisées depuis l'API distante.
 CREATE TABLE LocationEntity (
     id INTEGER NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     dimension TEXT NOT NULL,
-    residentIds TEXT NOT NULL, -- On stockera la liste sous forme de chaîne séparée par des virgules pour faire simple
+    -- Liste des IDs résidents sérialisée en CSV pour rester dans une colonne TEXT.
+    residentIds TEXT NOT NULL,
     created TEXT NOT NULL
 );
 
--- Requête pour récupérer toute la liste
+-- Retourne toutes les localisations persistées.
 selectAll:
 SELECT * FROM LocationEntity;
 
--- Requête pour récupérer un lieu spécifique
+-- Retourne une localisation à partir de son identifiant.
 selectById:
 SELECT * FROM LocationEntity WHERE id = ?;
 
--- Requête pour insérer ou mettre à jour un lieu
+-- Insère ou met à jour une localisation.
 insertLocation:
 INSERT OR REPLACE INTO LocationEntity(id, name, type, dimension, residentIds, created)
 VALUES (?, ?, ?, ?, ?, ?);

@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -13,15 +14,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.adam.evaluation.core.domain.model.Location
 
-
+/**
+ * Affiche l'écran de liste des localisations.
+ *
+ * @param viewModel ViewModel qui expose l'état et traite les intentions utilisateur.
+ * @return `Unit`.
+ */
 @Composable
 fun LocationListScreen(
-    viewModel: LocationListViewModel
+    viewModel: LocationListViewModel,
+    onNavigateToDetail: (Int) -> Unit
 ) {
     // On observe l'état du ViewModel de manière réactive
     val state by viewModel.state.collectAsState()
 
-    // L'UI réagit uniquement au State
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is LocationListEffect.NavigateToDetail -> onNavigateToDetail(effect.locationId)
+            }
+        }
+    }
+
+    // L'UI est pilotée uniquement par l'état: loading, erreur, vide ou liste.
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             state.isLoading && state.locations.isEmpty() -> {
@@ -57,6 +72,13 @@ fun LocationListScreen(
     }
 }
 
+/**
+ * Affiche une carte de localisation cliquable.
+ *
+ * @param location Localisation à afficher.
+ * @param onClick Callback appelé avec l'identifiant de la localisation.
+ * @return `Unit`.
+ */
 @Composable
 fun LocationItem(location: Location, onClick: (Int) -> Unit) {
     Card(
@@ -68,7 +90,7 @@ fun LocationItem(location: Location, onClick: (Int) -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = location.name, style = MaterialTheme.typography.titleLarge)
             Text(text = "Type: ${location.type}")
-            // Utilisation de la propriété dérivée demandée dans l'énoncé !
+            // Affiche le libellé dérivé calculé dans le modèle domaine.
             Text(text = location.residentCountLabel, style = MaterialTheme.typography.bodySmall)
         }
     }

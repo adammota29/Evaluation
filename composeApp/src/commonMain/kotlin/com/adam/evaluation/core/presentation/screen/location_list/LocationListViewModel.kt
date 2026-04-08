@@ -5,11 +5,19 @@ import com.adam.evaluation.core.domain.usecase.SyncLocationsUseCase
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel de l'écran de liste des localisations.
+ *
+ * @property getLocationsUseCase Cas d'usage d'observation des localisations locales.
+ * @property syncLocationsUseCase Cas d'usage de synchronisation réseau vers local.
+ */
 class LocationListViewModel(
     private val getLocationsUseCase: GetLocationsUseCase,
     private val syncLocationsUseCase: SyncLocationsUseCase
@@ -20,12 +28,20 @@ class LocationListViewModel(
     // L'état public exposé à la vue (immuable)
     val state: StateFlow<LocationListState> = _state.asStateFlow()
 
+    private val _effects = MutableSharedFlow<LocationListEffect>()
+    val effects: SharedFlow<LocationListEffect> = _effects
+
     init {
         // On charge les données dès la création du ViewModel
         handleIntent(LocationListIntent.LoadLocations)
     }
 
-    // L'unique point d'entrée pour la vue
+    /**
+     * Point d'entrée unique pour traiter les actions de l'UI.
+     *
+     * @param intent Intention utilisateur à exécuter.
+     * @return `Unit`.
+     */
     fun handleIntent(intent: LocationListIntent) {
         when (intent) {
             is LocationListIntent.LoadLocations -> observeLocations()
@@ -33,18 +49,24 @@ class LocationListViewModel(
                 refreshLocations()
             }
             is LocationListIntent.OnLocationClicked -> {
-                // On gérera la navigation plus tard
-                println("Location cliquée : ${intent.locationId}")
+                viewModelScope.launch {
+                    _effects.emit(LocationListEffect.NavigateToDetail(intent.locationId))
+                }
             }
         }
     }
 
+    /**
+     * Observe la source locale en continu puis déclenche une synchronisation initiale.
+     *
+     * @return `Unit`.
+     */
     private fun observeLocations() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
             launch {
-                // On collecte en continu la source de vérité locale.
+                // Collecte continue: chaque mise à jour DB rafraîchit automatiquement l'UI.
                 getLocationsUseCase().collect { locationsList ->
                     _state.update {
                         it.copy(
@@ -56,6 +78,7 @@ class LocationListViewModel(
             }
 
             try {
+                // Premier sync après démarrage de la collecte pour alimenter la source locale.
                 syncLocationsUseCase()
             } catch (e: Exception) {
                 _state.update {
@@ -68,6 +91,11 @@ class LocationListViewModel(
         }
     }
 
+    /**
+     * Lance une synchronisation manuelle demandée par l'utilisateur.
+     *
+     * @return `Unit`.
+     */
     private fun refreshLocations() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
