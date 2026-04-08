@@ -1,40 +1,87 @@
-This is a Kotlin Multiplatform project targeting Android, Desktop (JVM).
+# Evaluation
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## Vue d'ensemble
 
-### Build and Run Android Application
+Ce projet suit une approche **Kotlin Multiplatform + Compose** avec une architecture cible en **Clean Architecture**.
+L'objectif est d'avoir une base claire, maintenable et testable pour faire évoluer l'application sur plusieurs plateformes.
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+## Structure du projet
 
-### Build and Run Desktop (JVM) Application
+```text
+Evaluation/
+├── composeApp/
+│   ├── src/
+│   │   ├── commonMain/   # Code partagé (UI Compose, logique commune)
+│   │   ├── androidMain/  # Spécifique Android
+│   │   ├── jvmMain/      # Spécifique JVM/Desktop
+│   │   └── commonTest/   # Tests partagés
+│   └── build.gradle.kts
+├── gradle/
+├── settings.gradle.kts
+└── build.gradle.kts
+```
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+### Modules
 
----
+- `composeApp` : module principal de l'application (multiplateforme).
+- `commonMain` : coeur partagé entre plateformes.
+- `androidMain` : implémentations et configuration Android.
+- `jvmMain` : implémentations et configuration JVM/Desktop.
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## Choix d'architecture : Clean Architecture
+
+L'architecture visée sépare l'application en couches avec des responsabilités claires :
+
+- **Presentation** : écrans, état UI, ViewModels, orchestration d'actions utilisateur.
+- **Domain** : règles métier pures (Use Cases, entités, interfaces de repository).
+- **Data** : implémentations concrètes (API, base locale, DTO, mappers, repository impl).
+
+### Principes retenus
+
+- Les dépendances vont **de l'extérieur vers l'intérieur**.
+- Le **Domain** ne dépend d'aucun framework UI ou infrastructure.
+- La **Presentation** dépend du Domain.
+- La **Data** implémente les contrats définis dans le Domain.
+
+## Schéma des communications (cible)
+
+```mermaid
+flowchart LR
+    UI[UI Compose / Screen] --> VM[ViewModel]
+    VM --> UC[Use Case\n(Domain)]
+    UC --> R[Repository Interface\n(Domain)]
+    R --> RI[Repository Implementation\n(Data)]
+    RI --> DS[Data Sources\n(API / DB / Cache)]
+
+    DS --> RI
+    RI --> R
+    R --> UC
+    UC --> VM
+    VM --> UI
+```
+
+## Organisation cible des packages (exemple)
+
+```text
+composeApp/src/commonMain/kotlin/.../
+├── presentation/
+│   ├── screen/
+│   ├── component/
+│   └── viewmodel/
+├── domain/
+│   ├── model/
+│   ├── repository/
+│   └── usecase/
+└── data/
+    ├── remote/
+    ├── local/
+    ├── mapper/
+    └── repository/
+```
+
+## Prochaines étapes
+
+- Poser la convention de nommage des packages et dossiers.
+- Créer le premier flux complet `Screen -> ViewModel -> UseCase -> Repository`.
+- Ajouter des tests unitaires sur les Use Cases (domain).
+
