@@ -1,0 +1,19 @@
+CREATE TABLE LocationEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    dimension TEXT NOT NULL,
+    residentIds TEXT NOT NULL,
+    created TEXT NOT NULL
+);
+
+selectAll:
+SELECT * FROM LocationEntity;
+
+selectById:
+SELECT * FROM LocationEntity WHERE id = ?;
+
+insertLocation:
+INSERT OR REPLACE INTO LocationEntity(id, name, type, dimension, residentIds, created)
+VALUES (?, ?, ?, ?, ?, ?);
+

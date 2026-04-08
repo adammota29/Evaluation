@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    id("app.cash.sqldelight") version "2.3.2"
 }
 
 kotlin {
@@ -22,6 +23,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation("io.ktor:ktor-client-android:${libs.versions.ktor.get()}")
+            implementation("app.cash.sqldelight:android-driver:2.3.2")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -32,6 +35,11 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.json)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutine)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -39,6 +47,19 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation("io.ktor:ktor-client-cio:${libs.versions.ktor.get()}")
+            implementation("app.cash.sqldelight:sqlite-driver:2.3.2")
+        }
+    }
+}
+
+extensions.configure<Any>("sqldelight") {
+    // Utilise le DSL Groovy pour éviter les faux positifs d'accessors Kotlin DSL en attente de sync.
+    withGroovyBuilder {
+        "databases" {
+            "create"("AppDatabase") {
+                setProperty("packageName", "com.adam.evaluation.core.data.local")
+            }
         }
     }
 }

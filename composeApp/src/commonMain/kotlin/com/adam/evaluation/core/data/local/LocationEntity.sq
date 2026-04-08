@@ -1,0 +1,22 @@
+-- Définition de la table
+CREATE TABLE LocationEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    dimension TEXT NOT NULL,
+    residentIds TEXT NOT NULL, -- On stockera la liste sous forme de chaîne séparée par des virgules pour faire simple
+    created TEXT NOT NULL
+);
+
+-- Requête pour récupérer toute la liste
+selectAll:
+SELECT * FROM LocationEntity;
+
+-- Requête pour récupérer un lieu spécifique
+selectById:
+SELECT * FROM LocationEntity WHERE id = ?;
+
+-- Requête pour insérer ou mettre à jour un lieu
+insertLocation:
+INSERT OR REPLACE INTO LocationEntity(id, name, type, dimension, residentIds, created)
+VALUES (?, ?, ?, ?, ?, ?);
