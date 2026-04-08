@@ -61,7 +61,7 @@ val dataModule = module {
  * Enregistre les composants UI orientés état, notamment les ViewModels.
  */
 val presentationModule = module {
-    factory { LocationListViewModel(get(), get()) }
+    factory { LocationListViewModel(get(), get(), get()) }
     factory { (locationId: Int) ->
         LocationDetailViewModel(
             locationId = locationId,

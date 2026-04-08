@@ -1,5 +1,7 @@
 package com.adam.evaluation.core.presentation.screen.location_list
 
+import com.adam.evaluation.core.audio.AudioCue
+import com.adam.evaluation.core.audio.AudioManager
 import com.adam.evaluation.core.domain.usecase.GetLocationsUseCase
 import com.adam.evaluation.core.domain.usecase.SyncLocationsUseCase
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
  */
 class LocationListViewModel(
     private val getLocationsUseCase: GetLocationsUseCase,
-    private val syncLocationsUseCase: SyncLocationsUseCase
+    private val syncLocationsUseCase: SyncLocationsUseCase,
+    private val audioManager: AudioManager
 ) : ViewModel() {
 
     // L'état interne modifiable
@@ -50,6 +53,8 @@ class LocationListViewModel(
             }
             is LocationListIntent.OnLocationClicked -> {
                 viewModelScope.launch {
+                    // Le son ne doit jamais bloquer la navigation.
+                    audioManager.play(AudioCue.OpenDetail)
                     _effects.emit(LocationListEffect.NavigateToDetail(intent.locationId))
                 }
             }

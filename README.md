@@ -1,87 +1,188 @@
-# Evaluation
+# Evaluation - Rick and Morty Locations (KMP)
 
-## Vue d'ensemble
+Application Kotlin Multiplatform (Android + Desktop) construite autour de la Rick and Morty API.
 
-Ce projet suit une approche **Kotlin Multiplatform + Compose** avec une architecture cible en **Clean Architecture**.
-L'objectif est d'avoir une base claire, maintenable et testable pour faire évoluer l'application sur plusieurs plateformes.
+Le sujet est centré sur un parcours simple et propre:
+- afficher une liste de locations
+- ouvrir le détail d'une location
+- navigation mobile liste -> détail
+- mode Desktop master-detail (liste à gauche, détail à droite)
 
-## Structure du projet
+---
+
+## 1) Objectif du projet
+
+Ce projet sert de support d'évaluation pour démontrer:
+- une initialisation KMP propre
+- une architecture clean et modulaire
+- une séparation Presentation / Domain / Data
+- un flux UDF/MVI lisible
+- une intégration cross-platform pertinente
+
+---
+
+## 2) Plateformes cibles
+
+- Android
+- Desktop JVM
+
+---
+
+## 3) Fonctionnalités implémentées
+
+### Mobile (Android)
+- écran `LocationList`
+- écran `LocationDetail`
+- navigation liste -> détail
+
+### Desktop (JVM)
+- écran unique master-detail
+- liste des locations à gauche
+- panneau de détail à droite
+
+### Données
+- récupération des locations depuis l'API distante
+- persistance locale SQLDelight
+- observation réactive depuis la base locale (source de vérité)
+- synchronisation réseau -> local au démarrage et au refresh
+
+### Cross-platform
+- cas `expect/actual` via un `AudioManager`
+- implémentation Android + Desktop pour jouer un son lors de l'ouverture du détail
+
+---
+
+## 4) Architecture
+
+Le projet suit une Clean Architecture pragmatique.
+
+### Presentation
+- écrans Compose
+- `UiState`, `Intent`, `Effect`
+- `ViewModel` pour orchestrer les actions
+
+### Domain
+- modèle métier `Location`
+- contrat `LocationRepository`
+- use cases (`GetLocationsUseCase`, `ObserveLocationByIdUseCase`, `SyncLocationsUseCase`)
+
+### Data
+- `RickAndMortyApi` (source distante)
+- SQLDelight (source locale)
+- `LocationRepositoryImpl` (stratégie de fetch + mapping)
+
+### DI
+- Koin pour l'injection
+- modules communs + modules spécifiques plateforme
+
+---
+
+## 5) Structure du projet
 
 ```text
 Evaluation/
 ├── composeApp/
 │   ├── src/
-│   │   ├── commonMain/   # Code partagé (UI Compose, logique commune)
-│   │   ├── androidMain/  # Spécifique Android
-│   │   ├── jvmMain/      # Spécifique JVM/Desktop
-│   │   └── commonTest/   # Tests partagés
+│   │   ├── commonMain/
+│   │   │   └── kotlin/com/adam/evaluation/core/
+│   │   │       ├── presentation/
+│   │   │       ├── domain/
+│   │   │       ├── data/
+│   │   │       ├── di/
+│   │   │       └── audio/
+│   │   ├── androidMain/
+│   │   ├── jvmMain/
+│   │   └── commonTest/
 │   └── build.gradle.kts
 ├── gradle/
 ├── settings.gradle.kts
 └── build.gradle.kts
 ```
 
-### Modules
+---
 
-- `composeApp` : module principal de l'application (multiplateforme).
-- `commonMain` : coeur partagé entre plateformes.
-- `androidMain` : implémentations et configuration Android.
-- `jvmMain` : implémentations et configuration JVM/Desktop.
+## 6) Stack technique
 
-## Choix d'architecture : Clean Architecture
+- Kotlin Multiplatform
+- Compose Multiplatform
+- Ktor Client
+- SQLDelight
+- Koin
+- Kotlin Coroutines / Flow
+- Kotlinx Serialization
 
-L'architecture visée sépare l'application en couches avec des responsabilités claires :
+---
 
-- **Presentation** : écrans, état UI, ViewModels, orchestration d'actions utilisateur.
-- **Domain** : règles métier pures (Use Cases, entités, interfaces de repository).
-- **Data** : implémentations concrètes (API, base locale, DTO, mappers, repository impl).
+## 7) Lancer le projet
 
-### Principes retenus
+### Prérequis
+- JDK 17+ pour Gradle
+- Android SDK (pour la cible Android)
+- Windows/macOS/Linux (Desktop JVM)
 
-- Les dépendances vont **de l'extérieur vers l'intérieur**.
-- Le **Domain** ne dépend d'aucun framework UI ou infrastructure.
-- La **Presentation** dépend du Domain.
-- La **Data** implémente les contrats définis dans le Domain.
+> Le projet contient `org.gradle.java.home` dans `gradle.properties` pour pointer vers un JDK local. Adapter ce chemin selon votre machine si nécessaire.
 
-## Schéma des communications (cible)
+### Vérifier la JVM utilisée par Gradle
 
-```mermaid
-flowchart LR
-    UI[UI Compose / Screen] --> VM[ViewModel]
-    VM --> UC[Use Case\n(Domain)]
-    UC --> R[Repository Interface\n(Domain)]
-    R --> RI[Repository Implementation\n(Data)]
-    RI --> DS[Data Sources\n(API / DB / Cache)]
-
-    DS --> RI
-    RI --> R
-    R --> UC
-    UC --> VM
-    VM --> UI
+```powershell
+cd C:\Users\adamm\AndroidStudioProjects\Evaluation
+.\gradlew.bat -version
 ```
 
-## Organisation cible des packages (exemple)
+### Compiler Desktop JVM
 
-```text
-composeApp/src/commonMain/kotlin/.../
-├── presentation/
-│   ├── screen/
-│   ├── component/
-│   └── viewmodel/
-├── domain/
-│   ├── model/
-│   ├── repository/
-│   └── usecase/
-└── data/
-    ├── remote/
-    ├── local/
-    ├── mapper/
-    └── repository/
+```powershell
+cd C:\Users\adamm\AndroidStudioProjects\Evaluation
+.\gradlew.bat :composeApp:compileKotlinJvm
 ```
 
-## Prochaines étapes
+### Lancer Desktop JVM
 
-- Poser la convention de nommage des packages et dossiers.
-- Créer le premier flux complet `Screen -> ViewModel -> UseCase -> Repository`.
-- Ajouter des tests unitaires sur les Use Cases (domain).
+```powershell
+cd C:\Users\adamm\AndroidStudioProjects\Evaluation
+.\gradlew.bat :composeApp:run
+```
+
+### Compiler Android (debug)
+
+```powershell
+cd C:\Users\adamm\AndroidStudioProjects\Evaluation
+.\gradlew.bat :composeApp:compileDebugKotlinAndroid
+```
+
+---
+
+## 8) Flux fonctionnel principal
+
+1. L'utilisateur ouvre l'écran liste.
+2. Le `LocationListViewModel` observe la base locale.
+3. Un sync réseau alimente la base locale.
+4. L'UI se met à jour via `Flow`.
+5. Au clic sur une location:
+   - émission d'un son via `AudioManager`
+   - navigation vers le détail (mobile) ou sélection du panneau détail (desktop)
+
+---
+
+## 9) Qualité et lisibilité
+
+- nommage explicite par couche
+- responsabilités séparées
+- commentaires ciblés uniquement sur les zones non triviales
+- dépendances centralisées dans `libs.versions.toml`
+
+---
+
+## 10) Limites actuelles / axes d'amélioration
+
+- renforcer les tests unitaires (Domain + Data)
+- enrichir la gestion d'erreurs réseau
+- finaliser la documentation des choix cross-native (notamment extension `Context` Android)
+- optionnel: pagination et amélioration UX
+
+---
+
+## 11) Auteur
+
+- Projet réalisé par Adam dans le cadre de l'évaluation du module Kotlin Multiplatform.
 
